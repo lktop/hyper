@@ -208,7 +208,7 @@ impl Http1Transaction for Server {
         };
 
         // 保存原始报文  by lktop
-        let original_headers = OriginalHeaders::new(buf.put_slice(0..len).freeze());
+        let original_headers = OriginalHeaders::new(buf.split_to(len).freeze());
 
         let slice = buf.split_to(len).freeze();
         let uri = {
