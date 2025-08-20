@@ -28,6 +28,8 @@ use crate::proto::h1::{
 use crate::proto::RequestHead;
 use crate::proto::{BodyLength, MessageHead, RequestLine};
 
+use h2::ext::OriginalHeaders; // by lktop
+
 pub(crate) const DEFAULT_MAX_HEADERS: usize = 100;
 const AVERAGE_HEADER_SIZE: usize = 30; // totally scientific
 #[cfg(feature = "server")]
@@ -205,6 +207,9 @@ impl Http1Transaction for Server {
             }
         };
 
+        // 保存原始报文  by lktop
+        let original_headers = OriginalHeaders::new(buf.slice(0..len).freeze());
+
         let slice = buf.split_to(len).freeze();
         let uri = {
             let uri_bytes = slice.slice_ref(&slice[path_range]);
@@ -332,6 +337,9 @@ impl Http1Transaction for Server {
         }
 
         let mut extensions = http::Extensions::default();
+
+        // 存到extensions里 by lktop
+        extensions.insert(original_headers);
 
         if let Some(header_case_map) = header_case_map {
             extensions.insert(header_case_map);
