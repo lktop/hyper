@@ -209,7 +209,7 @@ impl Http1Transaction for Server {
 
         let slice = buf.split_to(len).freeze();
         // 保存原始报文  by lktop
-        let original_headers_raw = Some(slice.clone());
+        let original_headers_raw = slice.clone();
 
         let uri = {
             let uri_bytes = slice.slice_ref(&slice[path_range]);
