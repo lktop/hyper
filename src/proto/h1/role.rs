@@ -209,7 +209,7 @@ impl Http1Transaction for Server {
 
         let slice = buf.split_to(len).freeze();
         // 保存原始报文  by lktop
-        let original_headers = OriginalHeaders::new(Some(slice.clone()),);
+        let original_headers_raw = Some(slice.clone());
 
         let uri = {
             let uri_bytes = slice.slice_ref(&slice[path_range]);
@@ -351,7 +351,7 @@ impl Http1Transaction for Server {
         let mut extensions = http::Extensions::default();
 
         // 存到extensions里 by lktop
-        extensions.insert(original_headers);
+        extensions.insert(OriginalHeaders::new(Some(original_headers_raw),original_headers_vec));
 
         if let Some(header_case_map) = header_case_map {
             extensions.insert(header_case_map);
