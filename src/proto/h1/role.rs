@@ -256,7 +256,17 @@ impl Http1Transaction for Server {
         for header in &headers_indices[..headers_len] {
             // SAFETY: array is valid up to `headers_len`
             let header = unsafe { header.assume_init_ref() };
-            let name = header_name!(&slice[header.name.0..header.name.1]);
+
+            let name_bytes = &slice[header.name.0..header.name.1];
+            let value_bytes = &slice[header.value.0..header.value.1];
+
+            if let (Ok(name_str), Ok(value_str)) = (std::str::from_utf8(name_bytes),std::str::from_utf8(value_bytes)) {
+                original_headers_vec.push((name_str.to_string(), value_str.to_string()));
+            }else{
+                warn!("std::str::from_utf8(name_bytes),std::str::from_utf8(value_bytes) error");
+            }
+
+            let name = header_name!(name_bytes);
             let value = header_value!(slice.slice(header.value.0..header.value.1));
 
             match name {
@@ -331,7 +341,6 @@ impl Http1Transaction for Server {
             }
 
             headers.append(name, value);
-            original_headers_vec.append((name.to_string(),value.to_string()));
         }
 
         if is_te && !is_te_chunked {
