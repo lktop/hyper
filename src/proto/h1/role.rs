@@ -209,7 +209,7 @@ impl Http1Transaction for Server {
 
         let slice = buf.split_to(len).freeze();
         // 保存原始报文  by lktop
-        let original_headers = OriginalHeaders::new(slice.clone());
+        let original_headers = OriginalHeaders::new(Some(slice.clone()),);
 
         let uri = {
             let uri_bytes = slice.slice_ref(&slice[path_range]);
@@ -250,6 +250,8 @@ impl Http1Transaction for Server {
         let mut headers = ctx.cached_headers.take().unwrap_or_default();
 
         headers.reserve(headers_len);
+
+        let mut original_headers_vec = Vec::with_capacity(headers_len);
 
         for header in &headers_indices[..headers_len] {
             // SAFETY: array is valid up to `headers_len`
@@ -329,6 +331,7 @@ impl Http1Transaction for Server {
             }
 
             headers.append(name, value);
+            original_headers_vec.append((name.to_string(),value.to_string()));
         }
 
         if is_te && !is_te_chunked {
